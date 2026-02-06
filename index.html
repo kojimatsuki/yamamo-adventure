@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>やまもの冒険</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="hud" style="display:none;">
+            <div id="hud-left">
+                <span id="hud-lives"></span>
+            </div>
+            <div id="hud-center">
+                <span id="hud-stage"></span>
+                <span id="hud-time"></span>
+                <span id="hud-score"></span>
+            </div>
+            <div id="hud-right">
+                <div id="hud-powerups"></div>
+                <button id="hud-pause-btn">||</button>
+            </div>
+        </div>
+        <div id="touch-controls" style="display:none;">
+            <div id="joystick-zone"></div>
+            <button id="bomb-btn">BOMB</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/bomb.js"></script>
+    <script src="js/enemy.js"></script>
+    <script src="js/boss.js"></script>
+    <script src="js/items.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/hud.js"></script>
+    <script src="js/stages.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
