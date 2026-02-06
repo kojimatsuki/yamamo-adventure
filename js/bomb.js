@@ -44,10 +44,27 @@ const BombManager = {
             penetrate: penetrate || false,
             exploded: false,
             isPlayerBomb: isPlayerBomb || false,
+            // Player can walk through this bomb until they fully leave it
+            playerPassthrough: isPlayerBomb || false,
         };
         this.bombs.push(bomb);
         SoundManager.playBombPlace();
         return true;
+    },
+
+    // Check if player has left a passthrough bomb and revoke passthrough
+    updatePassthrough(playerX, playerZ) {
+        const margin = 0.35;
+        for (const bomb of this.bombs) {
+            if (!bomb.playerPassthrough || bomb.exploded) continue;
+            const bpos = gridToWorld(bomb.gx, bomb.gz);
+            // Check if player's bounding box no longer overlaps bomb cell
+            const overlapX = Math.abs(playerX - bpos.x) < (0.5 + margin);
+            const overlapZ = Math.abs(playerZ - bpos.z) < (0.5 + margin);
+            if (!overlapX || !overlapZ) {
+                bomb.playerPassthrough = false;
+            }
+        }
     },
 
     update(dt, map, onExplodeCell) {
@@ -100,7 +117,9 @@ const BombManager = {
     _explode(bomb, map, onExplodeCell) {
         if (bomb.exploded) return;
         bomb.exploded = true;
-        if (bomb.isPlayerBomb) Player.activeBombs--;
+        if (bomb.isPlayerBomb) {
+            Player.activeBombs = Math.max(0, Player.activeBombs - 1);
+        }
 
         SoundManager.playExplosion();
 

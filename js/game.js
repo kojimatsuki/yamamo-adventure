@@ -22,6 +22,7 @@ const Game = {
     pauseMenuItems: [],
     selectedPause: 0,
     savedProgress: null,
+    _respawnTimerId: null,
 
     init() {
         // Renderer
@@ -270,6 +271,12 @@ const Game = {
         this.timeRemaining = STAGE_TIME_LIMIT;
         this.stageTransitionTimer = 0;
 
+        // Cancel any pending respawn timer
+        if (this._respawnTimerId) {
+            clearTimeout(this._respawnTimerId);
+            this._respawnTimerId = null;
+        }
+
         // Clear everything
         this._clearStage();
 
@@ -403,6 +410,12 @@ const Game = {
     },
 
     _clearStage() {
+        // Cancel pending respawn timer
+        if (this._respawnTimerId) {
+            clearTimeout(this._respawnTimerId);
+            this._respawnTimerId = null;
+        }
+
         // Remove lights
         ['ambient', 'dirlight', 'lavalight'].forEach(name => {
             const obj = this.scene.getObjectByName(name);
@@ -543,13 +556,17 @@ const Game = {
         this.timeRemaining -= dt;
         if (this.timeRemaining <= 0) {
             this.timeRemaining = 0;
-            Player.die();
-            this._handlePlayerDeath();
+            if (Player.die()) {
+                this._handlePlayerDeath();
+            }
             return;
         }
 
         // Player
         Player.update(dt, GameMap, BombManager.getActiveBombs());
+
+        // Update bomb passthrough (check if player has left bomb cells)
+        BombManager.updatePassthrough(Player.position.x, Player.position.z);
 
         // Bomb placement
         if (Input.isBombAction() && Player.alive) {
@@ -790,18 +807,21 @@ const Game = {
     _handlePlayerDeath() {
         Effects.spawnDeathParticles(Player.position.x, 0.5, Player.position.z, 0xffffff);
         Effects.screenShake(0.3, 0.3);
-        SoundManager.stopBGM();
 
         if (Player.lives <= 0) {
+            SoundManager.stopBGM();
             this.state = STATE_GAME_OVER;
             this.stageTransitionTimer = 2;
             SoundManager.playGameOver();
         } else {
             // Respawn after delay
-            setTimeout(() => {
+            if (this._respawnTimerId) clearTimeout(this._respawnTimerId);
+            this._respawnTimerId = setTimeout(() => {
+                this._respawnTimerId = null;
                 if (this.state !== STATE_PLAYING && this.state !== STATE_BOSS_INTRO) return;
+                // Reset activeBombs to count only remaining player bombs
+                Player.activeBombs = BombManager.getActiveBombs().filter(b => b.isPlayerBomb).length;
                 Player.spawn(1, 1);
-                Player.alive = true;
             }, 1500);
         }
     },

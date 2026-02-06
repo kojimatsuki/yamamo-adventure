@@ -83,6 +83,7 @@ const Player = {
         this.position.z = pos.z;
         this.gridPos = { gx, gz };
         this.mesh.position.set(pos.x, 0, pos.z);
+        this.mesh.visible = true;
         this.alive = true;
         this.invincible = true;
         this.invincibleTimer = 2.0;
@@ -154,7 +155,6 @@ const Player = {
                 this.position.x = newX;
             } else if (this.sliding) {
                 this.sliding = false;
-                // Snap to grid
                 this.position.x = Math.round(this.position.x + Math.floor(GRID_COLS / 2)) - Math.floor(GRID_COLS / 2);
             }
             if (canMoveZ) {
@@ -181,6 +181,10 @@ const Player = {
                 this.leftLeg.position.z = 0;
                 this.rightLeg.position.z = 0;
             }
+            // Stop sliding if not moving
+            if (this.sliding) {
+                this.sliding = false;
+            }
         }
 
         // Update grid position
@@ -192,7 +196,7 @@ const Player = {
     },
 
     _canMoveTo(x, z, margin, map, bombs) {
-        // Check four corners
+        // Check four corners of the player's collision box
         const corners = [
             { x: x - margin, z: z - margin },
             { x: x + margin, z: z - margin },
@@ -203,12 +207,12 @@ const Player = {
         for (const c of corners) {
             const g = worldToGrid(c.x, c.z);
             if (map.isSolid(g.gx, g.gz)) return false;
-            // Check bomb collision (can't walk through bombs, but can leave current bomb cell)
+            // Check bomb collision - use passthrough flag
             if (bombs) {
                 for (const bomb of bombs) {
                     if (bomb.gx === g.gx && bomb.gz === g.gz) {
-                        // Allow walking off a bomb you just placed
-                        if (bomb.gx === this.gridPos.gx && bomb.gz === this.gridPos.gz) continue;
+                        // Allow walking through bombs that have passthrough enabled
+                        if (bomb.playerPassthrough) continue;
                         return false;
                     }
                 }
@@ -221,6 +225,8 @@ const Player = {
         if (this.invincible || !this.alive) return false;
         this.alive = false;
         this.lives--;
+        // Hide the mesh immediately
+        this.mesh.visible = false;
         SoundManager.playDamage();
         return true;
     },

@@ -156,7 +156,7 @@ const StageData = {
             for (let x = 1; x < GRID_COLS - 1; x++) {
                 if (map.grid[z][x] !== CELL_EMPTY) continue;
                 // Must be far enough from player start (1,1)
-                if (Math.abs(x - 1) + Math.abs(z - 1) < 5) continue;
+                if (Math.abs(x - 1) + Math.abs(z - 1) < 3) continue;
                 positions.push({ gx: x, gz: z });
             }
         }

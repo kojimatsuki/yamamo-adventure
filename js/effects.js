@@ -42,9 +42,11 @@ const Effects = {
             const intensity = this.shakeAmount * (this.shakeTimer / 0.3);
             this.camera.position.x = this.cameraOrigPos.x + (Math.random() - 0.5) * intensity;
             this.camera.position.y = this.cameraOrigPos.y + (Math.random() - 0.5) * intensity;
-        } else {
-            this.camera.position.x = this.cameraOrigPos.x;
-            this.camera.position.y = this.cameraOrigPos.y;
+            if (this.shakeTimer <= 0) {
+                // Restore exact original position
+                this.camera.position.x = this.cameraOrigPos.x;
+                this.camera.position.y = this.cameraOrigPos.y;
+            }
         }
 
         // Overlays
@@ -113,9 +115,12 @@ const Effects = {
     },
 
     screenShake(amount, duration) {
-        this.shakeAmount = amount || 0.3;
-        this.shakeTimer = duration || 0.3;
-        this.cameraOrigPos = this.camera.position.clone();
+        // Only save original position if not already shaking
+        if (this.shakeTimer <= 0) {
+            this.cameraOrigPos = this.camera.position.clone();
+        }
+        this.shakeAmount = Math.max(this.shakeAmount, amount || 0.3);
+        this.shakeTimer = Math.max(this.shakeTimer, duration || 0.3);
     },
 
     showBossIntro(bossName, callback) {
@@ -134,23 +139,19 @@ const Effects = {
         nameSprite.visible = false;
         this.scene.add(nameSprite);
 
-        let phase = 0;
         const overlay2 = {
             mesh: overlay,
             timer: 4,
             onUpdate: (o, dt) => {
                 const elapsed = 4 - o.timer;
                 if (elapsed < 1) {
-                    // Fade in dark
                     overlayMat.opacity = elapsed * 0.7;
                 } else if (elapsed < 2.5) {
                     overlayMat.opacity = 0.7;
                     nameSprite.visible = true;
-                    // Pulse
                     const s = 1 + Math.sin(elapsed * 4) * 0.1;
                     nameSprite.scale.setScalar(s);
                 } else {
-                    // Fade out
                     overlayMat.opacity = 0.7 * (1 - (elapsed - 2.5) / 1.5);
                     nameSprite.visible = elapsed < 3.5;
                 }
